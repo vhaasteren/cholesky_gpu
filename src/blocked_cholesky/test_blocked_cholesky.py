@@ -34,11 +34,11 @@ def build_pd_matrix(N: int):
     np.random.seed(N)
     n_elements = N * (N + 1) // 2
     lower_values = np.random.randint(1, 11, size=n_elements)
-    
+
     L_np = np.zeros((N, N), dtype=np.float32)
     tril_indices = np.tril_indices(N)
     L_np[tril_indices] = lower_values
-    
+
     A_np = L_np @ L_np.T
     return L_np, A_np
 
@@ -79,6 +79,7 @@ class TestBlockedCholesky4x4(unittest.TestCase):
         """Test GPU off-diagonal update block for block (1,0) on 4×4 matrix."""
         L_diag_cpu = np_cholesky_diag_block(self.A, self.block_size)
         L_off_cpu = np_offdiag_update(self.A, L_diag_cpu, self.block_size)
+        # CPU reference off-diagonal block for (1,0)
         cpu_off_block = L_off_cpu[self.block_size:2*self.block_size, :self.block_size]
         A_mlx = mx.array(self.A)
         gpu_off_block = np.array(gpu_offdiag_update_block(A_mlx, mx.array(L_off_cpu), 0, 1, self.block_size))
@@ -95,6 +96,7 @@ class TestBlockedCholesky4x4(unittest.TestCase):
         L_diag_cpu = np_cholesky_diag_block(self.A, self.block_size)
         L_off_cpu = np_offdiag_update(self.A, L_diag_cpu, self.block_size)
         L_full_cpu = np_trailing_update(self.A, L_off_cpu, self.block_size)
+        # CPU reference trailing block for (1,1)
         cpu_trailing_block = L_full_cpu[self.block_size:2*self.block_size, self.block_size:2*self.block_size]
         A_mlx = mx.array(self.A)
         L_full_cpu_mlx = mx.array(L_full_cpu)
@@ -229,6 +231,7 @@ class TestNPBlockedCholeskyGeneral(unittest.TestCase):
                     diff = np.linalg.norm(L_trail - expected)
                     print(f"CPU trailing block ({i},{j}) from k={k} difference: {diff}")
                     self.assertAlmostEqual(diff, 0, places=4)
+
 
 if __name__ == '__main__':
     unittest.main()
