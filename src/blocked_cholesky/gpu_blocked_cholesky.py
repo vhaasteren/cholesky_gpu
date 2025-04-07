@@ -51,9 +51,6 @@ def gpu_blocked_cholesky(A: mx.array, block_size: int):
             for j in range(k + 1, i + 1):
                 L_trail = gpu_trailing_update_block(mx.array(A), mx.array(L_trail_ref), k, i, j, block_size)
                 L[i * block_size:(i + 1) * block_size, j * block_size:(j + 1) * block_size] = np.array(L_trail)
-                if i != j:
-                    # Zero out the symmetric upper triangular part.
-                    L[j * block_size:(j + 1) * block_size, i * block_size:(i + 1) * block_size] = 0.0
 
     # Enforce strict lower-triangularity.
     L = np.array(gpu_clear_upper(mx.array(L), block_size))
